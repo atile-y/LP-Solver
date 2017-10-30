@@ -25,10 +25,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    individuo.cpp \
+    poblacion.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    individuo.h \
+    poblacion.h
 
 FORMS += \
         mainwindow.ui
+
+RESOURCES += \
+    resources.qrc
