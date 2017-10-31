@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "poblacion.h"
+#include "varlimdialog.h"
 
 #include <QMainWindow>
 
@@ -33,7 +34,6 @@ private:
     Ui::MainWindow *ui;
 
     Poblacion *poblacion;
-    uint m_nPrecision;
     QVector<QLabel *> m_vRLabel;
     QVector<QLineEdit *> m_vRLineEdit;
     QVector<QPushButton *> m_vRPushButton;

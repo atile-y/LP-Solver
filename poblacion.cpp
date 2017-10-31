@@ -17,6 +17,9 @@ Poblacion::Poblacion(){
     m_nProbSele = 0.7;
     m_nProbMuta = 0.3;
 
+    m_nPrecision = 2;
+    m_bMaximizar = true;
+
     unsigned seed = chrono::system_clock::now().time_since_epoch().count();
     generator = default_random_engine(seed);
 }
@@ -37,6 +40,9 @@ Poblacion::Poblacion(uint s, uint c, TipoSeleccion ts, TipoCruza tc, TipoMuta tm
         if( make )
             m_vIndividuo.at(i)->randomCromosoma();
     }
+
+    m_nPrecision = 2;
+    m_bMaximizar = true;
 
     unsigned seed = chrono::system_clock::now().time_since_epoch().count();
     generator = default_random_engine(seed);
@@ -66,8 +72,15 @@ void Poblacion::setIndividuo(uint i, Individuo *ind){
 
 QVector<double> Poblacion::evolve(){
     QVector<double> data;
+    uint idx;
+    double max, v;
 
+    calcBits();
     crearG0();
+    qInfo() << "Generacion 0:";
+    for(uint i=0;i<m_nSize;i++)
+        fitness(i, true);
+
 
     data.append(getMaximo() / getSuma());
     data.append(getMinimo() / getSuma());
@@ -79,9 +92,55 @@ QVector<double> Poblacion::evolve(){
 
         data.append(getMaximo() / getSuma());
         data.append(getMinimo() / getSuma());
+        qInfo() << "Generacion" << (i+1);
+        idx = 0;
+        max = INT_MIN;
+        for(uint j=0;j<m_nSize;j++){
+            v = fitness(j, true);
+            if( v > max ){
+                max = v;
+                idx = j;
+            }
+        }
+
+        qInfo() << "Maximo:";
+        fitness(idx, true);
+        QString strCro = m_vIndividuo.at(idx)->getStrCromosoma();
+        int padd = m_vBits.at(0);
+        for(int j=1;j<m_vBits.size();j++){
+            strCro.insert(padd, "-");
+            padd += m_vBits.at(j);
+        }
+        qInfo() << strCro;
     }
 
     return data;
+}
+
+void Poblacion::calcBits(){
+    QPair<bool,bool> reduce;
+    m_vBits.clear();
+    m_nCromo = 0;
+    for(int i=0;i<m_strVar.length();i++){
+        long left = m_vLimits.at(i).first;
+        long right = m_vLimits.at(i).second;
+        long diff = right - left;
+        if( std::floor(std::log10(diff)) + m_nPrecision + 1 > 18 )
+            reduce = QPair<bool,bool>(left==INT_MIN, right==INT_MAX);
+        while( std::floor(std::log10(diff)) + m_nPrecision + 1 > 18 ){
+            if( reduce.first )
+                left /= 2L;
+            if( reduce.second )
+                right /= 2L;
+            m_vLimits.replace(i, QPair<int,int>(left, right));
+            diff = right - left;
+        }
+        long mult = std::pow(10, m_nPrecision);
+        m_vBits.append(std::ceil(std::log2(diff*mult)));
+        m_nCromo += m_vBits.at(i);
+        qInfo() << "Variable" << m_strVar.at(i) << " => " << m_vBits.at(i) << "bits.";
+    }
+    qInfo() << "Cromosoma" << m_nCromo << "bits.";
 }
 
 void Poblacion::crearG0(){
@@ -89,8 +148,101 @@ void Poblacion::crearG0(){
 
     for(uint i=0;i<m_nSize;i++){
         m_vIndividuo.append(new Individuo(m_nCromo));
-        m_vIndividuo.at(i)->randomCromosoma();
+        do{
+            m_vIndividuo.at(i)->randomCromosoma();
+        }
+        while( !valida(i) );
     }
+}
+
+bool Poblacion::valida(uint idx){
+    QHash<QString, double> hash;
+    uint bitini = 0;
+    for(int i=0;i<m_strVar.length();i++){
+        ulong decimal = m_vIndividuo.at(idx)->getDecimal(bitini, bitini + m_vBits.at(i));
+        double diff = m_vLimits.at(i).second - m_vLimits.at(i).first;
+        hash[m_strVar.at(i)] = m_vLimits.at(i).first + decimal * (diff / (1L << m_vBits.at(i)));
+        bitini += m_vBits.at(i);
+    }
+
+    //qInfo() << hash;
+
+    QRegExp reNum("-?(?:\\d*\\.)?\\d+");
+    QRegExp reVar("[a-y]", Qt::CaseInsensitive);
+    QRegExp reDesig("<|<=|>|>=|=");
+    for(int i=0;i<m_vR.size();i++){
+        QString comp;
+        double left = 0.0, right = 0.0;
+        double tmp = 1.0;
+        int j = 0;
+
+        if( reNum.indexIn(m_vR.at(i).at(j)) != -1 )
+            left = reNum.cap().toDouble();
+        else
+            left = 1.0;
+        if( reVar.indexIn(m_vR.at(i).at(j)) != -1 )
+            left *= hash[reVar.cap()];
+        for(j=1;j<m_vR.at(i).size();j++){
+            if( reDesig.indexIn(m_vR.at(i).at(j)) != -1 ){
+                comp = reDesig.cap();
+                j++;
+                break;
+            }
+
+            if( m_vR.at(i).at(j) == "+" )
+                tmp = 1.0;
+            else if( m_vR.at(i).at(j) == "-" )
+                tmp = -1.0;
+            else
+                qInfo() << "FATAL ERROR";
+
+            j++;
+            if( reNum.indexIn(m_vR.at(i).at(j)) != -1 )
+                tmp *= reNum.cap().toDouble();
+            if( reVar.indexIn(m_vR.at(i).at(j)) != -1 )
+                tmp *= hash[reVar.cap()];
+
+            left += tmp;
+        }
+
+        if( reNum.indexIn(m_vR.at(i).at(j)) != -1 )
+            right = reNum.cap().toDouble();
+        else
+            right = 1.0;
+        if( reVar.indexIn(m_vR.at(i).at(j)) != -1 )
+            right *= hash[reVar.cap()];
+        for(j++;j<m_vR.at(i).size();j++){
+            if( m_vR.at(i).at(j) == "+" )
+                tmp = 1.0;
+            else if( m_vR.at(i).at(j) == "-" )
+                tmp = -1.0;
+            else
+                qInfo() << "FATAL ERROR";
+
+            j++;
+            if( reNum.indexIn(m_vR.at(i).at(j)) != -1 )
+                tmp *= reNum.cap().toDouble();
+            if( reVar.indexIn(m_vR.at(i).at(j)) != -1 )
+                tmp *= hash[reVar.cap()];
+
+            right += tmp;
+        }
+
+        //qInfo() << left << comp << right;
+
+        if( comp == "<" && !(left < right) )
+            return false;
+        else if( comp == "<=" && !(left <= right) )
+            return false;
+        else if( comp == ">" && !(left > right) )
+            return false;
+        else if( comp == ">=" && !(left >= right) )
+            return false;
+        else if( comp == "=" && !(left == right) )
+            return false;
+    }
+
+    return true;
 }
 
 double Poblacion::getSuma(){
@@ -126,18 +278,56 @@ double Poblacion::getMinimo(){
     return r;
 }
 
-double Poblacion::fitness(uint i){
-    if( i >= m_nSize )
+double Poblacion::fitness(uint idx, bool debug){
+    if( idx >= m_nSize )
         return -999999.99;
 
-    int v = 0;
-    for(uint j=0;j<m_nCromo;j++)
-        v = 2*v + m_vIndividuo.at(i)->getAlelo(j);
+    QString strDebug = "";
+    QHash<QString, double> hash;
+    uint bitini = 0;
+    for(int i=0;i<m_strVar.length();i++){
+        ulong decimal = m_vIndividuo.at(idx)->getDecimal(bitini, bitini + m_vBits.at(i));
+        double diff = m_vLimits.at(i).second - m_vLimits.at(i).first;
+        hash[m_strVar.at(i)] = m_vLimits.at(i).first + decimal * (diff / (1L << m_vBits.at(i)));
+        if( debug )
+            strDebug += QString(m_strVar.at(i)) + "=" + QString::number(hash[m_strVar.at(i)]) + ",  ";
+        bitini += m_vBits.at(i);
+    }
 
-    double f = (v-5)/(2+sin(v));
-    if( f < 0.0 )
-        return -f;
-    return f;
+    QRegExp reNum("-?(?:\\d*\\.)?\\d+");
+    QRegExp reVar("[a-y]", Qt::CaseInsensitive);
+    double res = 0;
+    double tmp = 1.0;
+    int j = 0;
+
+    if( reNum.indexIn(m_slZ.at(j)) != -1 )
+        res = reNum.cap().toDouble();
+    else
+        res = 1.0;
+    if( reVar.indexIn(m_slZ.at(j)) != -1 )
+        res *= hash[reVar.cap()];
+    for(j=1;j<m_slZ.size();j++){
+        if( m_slZ.at(j) == "+" )
+            tmp = 1.0;
+        else if( m_slZ.at(j) == "-" )
+            tmp = -1.0;
+        else
+            qInfo() << "FATAL ERROR";
+
+        j++;
+        if( reNum.indexIn(m_slZ.at(j)) != -1 )
+            tmp *= reNum.cap().toDouble();
+        if( reVar.indexIn(m_slZ.at(j)) != -1 )
+            tmp *= hash[reVar.cap()];
+
+        res += tmp;
+    }
+
+    if( debug ){
+        strDebug += "Z=" + QString::number(res);
+        qInfo() << strDebug;
+    }
+    return res;
 }
 
 QVector<Individuo *> Poblacion::cruza(uint i, uint j){
@@ -798,7 +988,8 @@ void Poblacion::selecciona(){
     QVector<double> acum;
     uniform_real_distribution<double> prob;
     uint idxO, idxB;
-    double num;
+    double num, left, right;
+    bool isGT;
 
     switch(m_TipoSeleccion){
     case TipoSeleccion::TORNEO:
@@ -806,7 +997,10 @@ void Poblacion::selecciona(){
         for(int p=0;p<2;p++){
             pobIdx = barajea();
             for(uint i=0;i<m_nSize;i+=2){
-                if( fitness(pobIdx.at(i)) > fitness(pobIdx.at(i+1)) ){
+                left = fitness(pobIdx.at(i));
+                right = fitness(pobIdx.at(i+1));
+                isGT = left > right;
+                if( !(isGT ^ m_bMaximizar) ){
                     idxO = pobIdx.at(i);
                     idxB = pobIdx.at(i+1);
                 }
@@ -853,6 +1047,10 @@ void Poblacion::cruza(){
 
         m_vIndividuo.replace(i, v.at(0));
         m_vIndividuo.replace(i+1, v.at(1));
+        while( !valida(i) )
+            m_vIndividuo.at(i)->randomCromosoma();
+        while( !valida(i+1) )
+            m_vIndividuo.at(i+1)->randomCromosoma();
     }
 }
 
@@ -877,8 +1075,11 @@ void Poblacion::muta(){
     Individuo *ind;
     for(uint i : v){
         ind = muta(i);
-        if( ind != NULL )
+        if( ind != NULL ){
             m_vIndividuo.replace(i, ind);
+            while( !valida(i) )
+                m_vIndividuo.at(i)->randomCromosoma();
+        }
     }
 }
 

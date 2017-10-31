@@ -188,13 +188,13 @@ public:
         saLabel->setText(QApplication::translate("MainWindow", "Sujeto a", Q_NULLPTR));
         geneticGroupBox->setTitle(QApplication::translate("MainWindow", "Algoritmo Gen\303\251tico", Q_NULLPTR));
         generacionLabel->setText(QApplication::translate("MainWindow", "Generaciones", Q_NULLPTR));
-        generacionLineEdit->setText(QApplication::translate("MainWindow", "10", Q_NULLPTR));
+        generacionLineEdit->setText(QApplication::translate("MainWindow", "50", Q_NULLPTR));
         generacionLineEdit->setPlaceholderText(QApplication::translate("MainWindow", "N\303\272mero de iteraciones", Q_NULLPTR));
         poblacionLabel->setText(QApplication::translate("MainWindow", "Poblaci\303\263n", Q_NULLPTR));
-        poblacionLineEdit->setText(QApplication::translate("MainWindow", "10", Q_NULLPTR));
+        poblacionLineEdit->setText(QApplication::translate("MainWindow", "100", Q_NULLPTR));
         poblacionLineEdit->setPlaceholderText(QApplication::translate("MainWindow", "Tama\303\261o de la poblaci\303\263n", Q_NULLPTR));
         presicionLabel->setText(QApplication::translate("MainWindow", "Precisi\303\263n", Q_NULLPTR));
-        precisionLineEdit->setText(QApplication::translate("MainWindow", "2", Q_NULLPTR));
+        precisionLineEdit->setText(QApplication::translate("MainWindow", "5", Q_NULLPTR));
         precisionLineEdit->setPlaceholderText(QApplication::translate("MainWindow", "Bits de precisi\303\263n", Q_NULLPTR));
         maxRadioButton->setText(QApplication::translate("MainWindow", "Maximizar", Q_NULLPTR));
         minRadioButton->setText(QApplication::translate("MainWindow", "Minimizar", Q_NULLPTR));

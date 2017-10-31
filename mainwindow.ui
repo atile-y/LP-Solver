@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>451</width>
-    <height>401</height>
+    <height>451</height>
    </rect>
   </property>
   <property name="font">
@@ -42,6 +42,13 @@
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="zLabel">
+        <property name="text">
+         <string>Z =</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="1">
        <widget class="QPushButton" name="addRestPushButton">
         <property name="maximumSize">
@@ -65,13 +72,6 @@
         </property>
         <property name="flat">
          <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="zLabel">
-        <property name="text">
-         <string>Z =</string>
         </property>
        </widget>
       </item>
@@ -104,7 +104,7 @@
       <x>10</x>
       <y>180</y>
       <width>431</width>
-      <height>131</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -116,7 +116,7 @@
        <x>10</x>
        <y>30</y>
        <width>411</width>
-       <height>91</height>
+       <height>137</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout">
@@ -130,7 +130,7 @@
       <item row="0" column="1">
        <widget class="QLineEdit" name="generacionLineEdit">
         <property name="text">
-         <string>100</string>
+         <string>50</string>
         </property>
         <property name="placeholderText">
          <string>Número de iteraciones</string>
@@ -164,10 +164,34 @@
       <item row="2" column="1">
        <widget class="QLineEdit" name="precisionLineEdit">
         <property name="text">
-         <string>2</string>
+         <string>5</string>
         </property>
         <property name="placeholderText">
          <string>Bits de precisión</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QRadioButton" name="maxRadioButton">
+        <property name="text">
+         <string>Maximizar</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QRadioButton" name="minRadioButton">
+        <property name="text">
+         <string>Minimizar</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="aptitudLabel">
+        <property name="text">
+         <string>Aptitud (Z)</string>
         </property>
        </widget>
       </item>
@@ -178,7 +202,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>330</y>
+      <y>380</y>
       <width>32</width>
       <height>32</height>
      </rect>

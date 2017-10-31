@@ -27,15 +27,18 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     individuo.cpp \
-    poblacion.cpp
+    poblacion.cpp \
+    varlimdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     individuo.h \
-    poblacion.h
+    poblacion.h \
+    varlimdialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    varlimdialog.ui
 
 RESOURCES += \
     resources.qrc

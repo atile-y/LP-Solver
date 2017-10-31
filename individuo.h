@@ -23,6 +23,7 @@ public:
     void randomPattern();
     QString getStrCromosoma();
     uint getDecimal();
+    ulong getDecimal(uint, uint);
 
 private:
     uint m_nTam;

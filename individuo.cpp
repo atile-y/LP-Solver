@@ -84,9 +84,7 @@ QString Individuo::getStrCromosoma(){
     QString ret = "";
 
     for(uint i=0;i<m_nTam;i++){
-        if( m_bCromosoma[i] < 10 )
-            ret += " ";
-        ret += QString::number(m_bCromosoma[i]) + " ";
+        ret += QString::number(m_bCromosoma[i]);
     }
 
     return ret;
@@ -96,5 +94,12 @@ uint Individuo::getDecimal(){
     uint v = 0;
     for(uint i=0;i<m_nTam;i++)
         v = 2*v + m_bCromosoma[i];
+    return v;
+}
+
+ulong Individuo::getDecimal(uint ini, uint fin){
+    ulong v = 0L;
+    for(uint i=ini;i<fin;i++)
+        v = 2L*v + m_bCromosoma[i];
     return v;
 }
