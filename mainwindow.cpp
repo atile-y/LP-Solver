@@ -250,7 +250,10 @@ void MainWindow::on_runPushButton_clicked(){
     poblacion->setLimits(dial.getData());
     poblacion->evolve();
 
-    qInfo() << "Maximo Z:" << poblacion->getMaximo();
+    if( ui->maxRadioButton->isChecked() )
+        qInfo() << "Maximo Z:" << poblacion->getMaximo();
+    else if( ui->minRadioButton->isChecked() )
+        qInfo() << "Minimo Z:" << poblacion->getMinimo();
 }
 
 void MainWindow::on_generacionLineEdit_editingFinished(){

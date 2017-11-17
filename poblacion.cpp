@@ -73,7 +73,7 @@ void Poblacion::setIndividuo(uint i, Individuo *ind){
 QVector<double> Poblacion::evolve(){
     QVector<double> data;
     uint idx;
-    double max, v;
+    double mejor, v;
 
     calcBits();
     crearG0();
@@ -94,16 +94,16 @@ QVector<double> Poblacion::evolve(){
         data.append(getMinimo() / getSuma());
         qInfo() << "Generacion" << (i+1);
         idx = 0;
-        max = INT_MIN;
+        mejor = m_bMaximizar ? INT_MIN : INT_MAX;
         for(uint j=0;j<m_nSize;j++){
             v = fitness(j, true);
-            if( v > max ){
-                max = v;
+            if( !(m_bMaximizar ^ (v > mejor)) ){
+                mejor = v;
                 idx = j;
             }
         }
 
-        qInfo() << "Maximo:";
+        qInfo() << (m_bMaximizar ? "Maximo:" : "Minimo:");
         fitness(idx, true);
         QString strCro = m_vIndividuo.at(idx)->getStrCromosoma();
         int padd = m_vBits.at(0);
